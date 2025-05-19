@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --text-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --border-color: #e9ecef;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: var(--light-bg);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 48px 0 0;
+            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+            background-color: white;
+        }
+
+        .sidebar-sticky {
+            position: relative;
+            top: 0;
+            height: calc(100vh - 48px);
+            padding-top: .5rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            margin-left: 240px;
+            padding: 20px;
+        }
+
+        .module-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        .endpoint {
+            background-color: var(--light-bg);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .method.get { background-color: #e3f2fd; color: #1976d2; }
+        .method.post { background-color: #e8f5e9; color: #2e7d32; }
+        .method.put { background-color: #fff3e0; color: #f57c00; }
+        .method.delete { background-color: #ffebee; color: #c62828; }
+
+        .path {
+            font-family: 'Courier New', monospace;
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background-color: #2d2d2d;
+            color: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .nav-link:hover {
+            background-color: var(--light-bg);
+            color: var(--accent-color);
+        }
+
+        .nav-link.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .response-example {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+        }
+
+        .search-box {
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: static;
+                height: auto;
+                padding-top: 0;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar col-md-3 col-lg-2 d-md-block">
+        <div class="sidebar-sticky">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search APIs..." class="form-control">
+            </div>
+            <ul class="nav flex-column" id="moduleList">
+                <!-- Module list will be loaded here -->
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div id="content">
+            <!-- Content will be loaded here -->
+        </div>
+    </main>
+
+    <script>
+        let allDocs = {};
+        let currentModule = null;
+
+        // Load all documentation
+        async function loadAllDocumentation() {
+            try {
+                const response = await fetch('/api/documentation/all');
+                allDocs = await response.json();
+                updateModuleList();
+                if (Object.keys(allDocs.modules).length > 0) {
+                    showModule(Object.keys(allDocs.modules)[0]);
+                }
+            } catch (error) {
+                console.error('Error loading documentation:', error);
+            }
+        }
+
+        // Update module list in sidebar
+        function updateModuleList() {
+            const moduleList = document.getElementById('moduleList');
+            moduleList.innerHTML = Object.keys(allDocs.modules).map(moduleName => `
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-module="${moduleName}">
+                        <i class="bi bi-box"></i> ${moduleName}
+                    </a>
+                </li>
+            `).join('');
+
+            // Add click handlers
+            moduleList.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const moduleName = e.target.closest('.nav-link').dataset.module;
+                    showModule(moduleName);
+                });
+            });
+        }
+
+        // Show specific module documentation
+        function showModule(moduleName) {
+            currentModule = moduleName;
+            const module = allDocs.modules[moduleName];
+            const content = document.getElementById('content');
+
+            // Update active state in sidebar
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.module === moduleName);
+            });
+
+            content.innerHTML = `
+                <div class="module-card">
+                    <h1>${module.name}</h1>
+                    <p class="text-muted">Version ${module.version}</p>
+                    
+                    <h2 class="mt-4">Endpoints</h2>
+                    ${module.endpoints.map(endpoint => `
+                        <div class="endpoint">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="method ${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                                <span class="path">${endpoint.path}</span>
+                            </div>
+                            <p>${endpoint.description}</p>
+                            
+                            ${endpoint.body ? `
+                                <div class="mt-3">
+                                    <h5>Request Body:</h5>
+                                    <div class="code-block position-relative">
+                                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                                        <pre><code>${JSON.stringify(endpoint.body, null, 2)}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${endpoint.params ? `
+                                <div class="mt-3">
+                                    <h5>Parameters:</h5>
+                                    <div class="code-block position-relative">
+                                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                                        <pre><code>${JSON.stringify(endpoint.params, null, 2)}</code></pre>
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+
+                    <h2 class="mt-4">Examples</h2>
+                    ${Object.entries(module.examples).map(([key, example]) => `
+                        <div class="endpoint">
+                            <h3>${key}</h3>
+                            <div class="mt-3">
+                                <h5>cURL:</h5>
+                                <div class="code-block position-relative">
+                                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                                    <pre><code>${example.curl}</code></pre>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <h5>Response:</h5>
+                                <div class="code-block position-relative">
+                                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                                    <pre><code>${JSON.stringify(example.response, null, 2)}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(button) {
+            const codeBlock = button.nextElementSibling;
+            const text = codeBlock.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            document.querySelectorAll('.nav-link').forEach(link => {
+                const moduleName = link.dataset.module;
+                const module = allDocs.modules[moduleName];
+                const searchableText = `${moduleName} ${module.name} ${module.endpoints.map(e => e.path).join(' ')}`.toLowerCase();
+                link.style.display = searchableText.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Load documentation when page loads
+        loadAllDocumentation();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Downloader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #ff69b4;
+            --secondary-color: #ff1493;
+            --accent-color: #ffb6c1;
+            --text-color: #333;
+            --light-bg: #fff5f8;
+            --border-color: #ffcce6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .download-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .url-input {
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .url-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(255, 105, 180, 0.25);
+        }
+
+        .download-btn {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .media-preview {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background-color: var(--light-bg);
+        }
+
+        .media-item {
+            position: relative;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: white;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .media-item video {
+            width: 100%;
+            max-height: 70vh;
+            display: block;
+            object-fit: contain;
+        }
+
+        .media-info {
+            padding: 1rem;
+            background: white;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .media-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .download-btn-media {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .download-btn-media:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .download-btn-media i {
+            font-size: 1.2rem;
+        }
+
+        .modal-preview {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90vh;
+            margin: auto;
+            display: block;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+        }
+
+        .modal-close:hover {
+            color: var(--accent-color);
+        }
+
+        .loading-spinner {
+            display: none;
+            margin: 2rem auto;
+            text-align: center;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 10px;
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .download-all-container {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .download-all-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .download-all-btn:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .download-all-btn i {
+            font-size: 1.3rem;
+        }
+
+        @media (max-width: 768px) {
+            .download-container {
+                margin: 1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-cloud-download"></i> Social Media Downloader
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="download-container">
+            <h2 class="text-center mb-4">Download Social Media Content</h2>
+            <div class="input-group mb-3">
+                <input type="text" id="urlInput" class="form-control url-input" 
+                       placeholder="Paste Facebook or Instagram URL here...">
+                <button class="btn download-btn" onclick="processUrl()">
+                    <i class="bi bi-download"></i> Download
+                </button>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Processing your request...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <div id="mediaPreview" class="media-preview"></div>
+        </div>
+    </div>
+
+    <div id="modalPreview" class="modal-preview">
+        <button class="modal-close" onclick="closePreview()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <img id="modalImage" class="modal-content" style="display: none;">
+        <video id="modalVideo" class="modal-content" controls style="display: none;">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <script>
+        async function processUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const errorMessage = document.getElementById('errorMessage');
+            const mediaPreview = document.getElementById('mediaPreview');
+
+            const url = urlInput.value.trim();
+            if (!url) {
+                showError('Please enter a valid URL');
+                return;
+            }
+
+            try {
+                loadingSpinner.style.display = 'block';
+                errorMessage.style.display = 'none';
+                mediaPreview.innerHTML = '';
+
+                let response;
+                if (url.includes('facebook.com')) {
+                    response = await fetch(`/api/facebook/get-video/${encodeURIComponent(url)}`);
+                } else if (url.includes('instagram.com')) {
+                    response = await fetch(`/api/instagram/get-media/${encodeURIComponent(url)}`);
+                } else {
+                    throw new Error('Unsupported URL. Please enter a valid Facebook or Instagram URL.');
+                }
+
+                const data = await response.json();
+                if (response.ok) {
+                    await displayMedia(data);
+                } else {
+                    throw new Error(data.error || 'Failed to process URL');
+                }
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        }
+
+        async function displayMedia(data) {
+            const mediaPreview = document.getElementById('mediaPreview');
+            mediaPreview.innerHTML = '';
+
+            if (data.url_list) {
+                // Instagram media
+                const imageUrls = [];
+                const videoUrls = [];
+
+                for (let i = 0; i < data.url_list.length; i++) {
+                    const url = data.url_list[i];
+                    const mediaType = data.media_details[i].type;
+                    
+                    // Download to server first
+                    const downloadResponse = await fetch('/api/download/process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            url: url,
+                            type: mediaType
+                        })
+                    });
+
+                    const downloadResult = await downloadResponse.json();
+                    if (!downloadResponse.ok) {
+                        throw new Error(downloadResult.error || 'Failed to download media');
+                    }
+
+                    const fileUrl = `/api/download/file/${downloadResult.filename}`;
+                    const title = data.post_info?.caption || `Media ${i + 1}`;
+
+                    const mediaItem = document.createElement('div');
+                    mediaItem.className = 'media-item';
+
+                    if (mediaType === 'video') {
+                        videoUrls.push(fileUrl);
+                        mediaItem.innerHTML = `
+                            <video controls>
+                                <source src="${fileUrl}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="media-info">
+                                <div class="media-title">${title}</div>
+                                <a href="${fileUrl}" download class="download-btn-media">
+                                    <i class="bi bi-download"></i> Tải xuống
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        imageUrls.push(fileUrl);
+                        mediaItem.innerHTML = `
+                            <img src="${fileUrl}" alt="Instagram media">
+                            <div class="media-info">
+                                <div class="media-title">${title}</div>
+                                <a href="${fileUrl}" download class="download-btn-media">
+                                    <i class="bi bi-download"></i> Tải xuống
+                                </a>
+                            </div>
+                        `;
+                    }
+                    mediaPreview.appendChild(mediaItem);
+                }
+
+                // Add download all button if there are multiple images
+                if (imageUrls.length > 1) {
+                    const downloadAllContainer = document.createElement('div');
+                    downloadAllContainer.className = 'download-all-container';
+                    downloadAllContainer.innerHTML = `
+                        <button class="download-all-btn" onclick="downloadAllImages(${JSON.stringify(imageUrls)})">
+                            <i class="bi bi-download"></i> Tải xuống tất cả ảnh (${imageUrls.length})
+                        </button>
+                    `;
+                    mediaPreview.appendChild(downloadAllContainer);
+                }
+            } else if (data.sd || data.hd) {
+                // Facebook video
+                const videoUrl = data.hd || data.sd;
+                
+                // Download to server first
+                const downloadResponse = await fetch('/api/download/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: videoUrl,
+                        type: 'video'
+                    })
+                });
+
+                const downloadResult = await downloadResponse.json();
+                if (!downloadResponse.ok) {
+                    throw new Error(downloadResult.error || 'Failed to download video');
+                }
+
+                const fileUrl = `/api/download/file/${downloadResult.filename}`;
+                const title = data.title || 'Facebook Video';
+
+                const mediaItem = document.createElement('div');
+                mediaItem.className = 'media-item';
+                mediaItem.innerHTML = `
+                    <video controls>
+                        <source src="${fileUrl}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="media-info">
+                        <div class="media-title">${title}</div>
+                        <a href="${fileUrl}" download class="download-btn-media">
+                            <i class="bi bi-download"></i> Tải xuống
+                        </a>
+                    </div>
+                `;
+                mediaPreview.appendChild(mediaItem);
+            }
+        }
+
+        async function downloadAllImages(urls) {
+            try {
+                for (let i = 0; i < urls.length; i++) {
+                    const url = urls[i];
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = `image_${i + 1}.jpg`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(downloadUrl);
+                    
+                    // Add a small delay between downloads
+                    if (i < urls.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+            } catch (error) {
+                console.error('Error downloading images:', error);
+                showError('Có lỗi xảy ra khi tải xuống ảnh');
+            }
+        }
+
+        function openPreview(url, type) {
+            const modal = document.getElementById('modalPreview');
+            const modalImage = document.getElementById('modalImage');
+            const modalVideo = document.getElementById('modalVideo');
+
+            modal.style.display = 'flex';
+            modalImage.style.display = 'none';
+            modalVideo.style.display = 'none';
+
+            if (type === 'image') {
+                modalImage.src = url;
+                modalImage.style.display = 'block';
+            } else {
+                modalVideo.src = url;
+                modalVideo.style.display = 'block';
+            }
+        }
+
+        function closePreview() {
+            const modal = document.getElementById('modalPreview');
+            const modalVideo = document.getElementById('modalVideo');
+            
+            modal.style.display = 'none';
+            modalVideo.pause();
+            modalVideo.src = '';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalPreview');
+            if (event.target === modal) {
+                closePreview();
+            }
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Handle Enter key press
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processUrl();
+            }
+        });
+    </script>
+</body>
+</html> 
