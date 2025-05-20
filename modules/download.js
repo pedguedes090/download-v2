@@ -4,6 +4,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const downloadManager = require('./download-manager');
 
 // Create temp directory if it doesn't exist
 const tempDir = path.join(__dirname, '../temp');
@@ -29,47 +30,33 @@ setInterval(() => {
 
 // Documentation endpoint
 router.get('/docs', (req, res) => {
-    const docs = {
-        name: "Download API",
-        description: "API tải xuống media từ Facebook và Instagram",
-        version: "1.0.0",
+    res.json({
+        name: 'Download Manager',
+        description: 'Quản lý tải xuống media từ Facebook và Instagram',
+        version: '1.0.0',
         endpoints: [
             {
-                path: "/process",
-                method: "POST",
-                description: "Tải xuống media từ URL",
+                path: '/process',
+                method: 'POST',
+                description: 'Tải xuống media từ URL',
                 requestBody: {
-                    url: "URL của media cần tải",
-                    type: "Loại media (image/video)"
+                    url: 'URL của media cần tải',
+                    type: 'Loại media (image/video)'
                 },
                 response: {
-                    filename: "Tên file đã tải xuống"
+                    filename: 'Tên file đã tải xuống'
                 }
             },
             {
-                path: "/file/:filename",
-                method: "GET",
-                description: "Lấy file đã tải xuống",
+                path: '/file/:filename',
+                method: 'GET',
+                description: 'Lấy file đã tải xuống',
                 params: {
-                    filename: "Tên file cần lấy"
+                    filename: 'Tên file cần lấy'
                 }
             }
-        ],
-        examples: {
-            process: {
-                request: {
-                    url: "https://example.com/video.mp4",
-                    type: "video"
-                },
-                response: {
-                    filename: "550e8400-e29b-41d4-a716-446655440000.mp4"
-                }
-            }
-        }
-    };
-    
-    res.setHeader('Content-Type', 'application/json');
-    res.json(docs);
+        ]
+    });
 });
 
 // Process download endpoint
