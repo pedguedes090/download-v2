@@ -7,6 +7,54 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Function to reload modules
+function reloadModules() {
+    console.log('Reloading modules...');
+    
+    // Clear require cache for all modules
+    Object.keys(require.cache).forEach(key => {
+        if (key.includes('modules')) {
+            delete require.cache[key];
+        }
+    });
+
+    // Reload all modules
+    fs.readdirSync(modulesDir)
+        .filter(file => file.endsWith('.js'))
+        .forEach(file => {
+            try {
+                const modulePath = path.join(modulesDir, file);
+                const module = require(modulePath);
+                const moduleName = path.basename(file, '.js');
+                
+                // Remove old route if exists
+                if (apiRoutes[moduleName]) {
+                    app._router.stack = app._router.stack.filter(layer => {
+                        return !layer.regexp.toString().includes(`/api/${moduleName}`);
+                    });
+                }
+
+                // Add new route
+                if (typeof module === 'function') {
+                    const router = express.Router();
+                    module(router);
+                    app.use(`/api/${moduleName}`, router);
+                    apiRoutes[moduleName] = router;
+                } else if (module instanceof express.Router) {
+                    app.use(`/api/${moduleName}`, module);
+                    apiRoutes[moduleName] = module;
+                }
+                
+                console.log(`Reloaded module: ${moduleName}`);
+            } catch (error) {
+                console.log(`Error reloading module ${file}:`, error.message);
+            }
+        });
+}
+
+// Set up auto-reload every 10 minutes
+setInterval(reloadModules, 10 * 60 * 1000); // 10 minutes in milliseconds
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
@@ -65,7 +113,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log('Loaded API modules:', Object.keys(apiRoutes));
+    console.log('Server will restart every 10 minutes');
 }); 
